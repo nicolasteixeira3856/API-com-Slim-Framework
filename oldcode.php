@@ -4,67 +4,8 @@
 
     require 'vendor/autoload.php';
 
-    $app  = new \Slim\App([
-        'settings' => [
-            'displayErrorDetails' => true
-        ]
-    ]);
+    $app  = new \Slim\App;
 
-
-    /* Tipos de respostas 
-        Cabeçalho, texto, JSON, XML 
-    */
-
-    $app->get('/header', function(Request $request, Response $response){
-        $response->write('Esse é um retorno header');
-        return $response   ->withHeader('allow', 'PUT')
-                    ->withAddedHeader('Content-Length', 10);
-    });
-
-    $app->get('/json', function(Request $request, Response $response){
-        return $response->withJson([
-            "nome" => "Nicolas Teixeira"
-        ]);
-
-    });
-
-    
-    $app->run();
-
-    //Container Dependecy Injection
-    /*
-    class Servico {
-        
-    }
-
-    $servico = new Servico;
-    
-    /* Container Pimple 
-    $container = $app->getContainer();
-    $container['servico'] = function(){
-        return new Servico;
-    };
-
-    $app->get('/servico', function(Request $requestm, Response $response)  {
-        $servico = $this->get('servico');
-        var_dump($servico);
-    });
-
-    //Controllers como serviço
-
-    /*$container = $app->getContainer();
-    $container['View'] = function(){
-        return new MyApp\View;
-    };
-
-    $app->get('/usuario', '\MyApp\controllers\Home:index');*/
-
-    /*$container = $app->getContainer();
-    $container['Home'] = function(){
-        return new MyApp\controllers\Home (new MyApp\View);
-    };
-
-    $app->get('/usuario', 'Home:index');*/
     //Padrão PSR7
     /*$app->get('/postagens', function(Request $request, Response $response){
         //Esreve no corpo da resposta utilizando o padrão PSR7
