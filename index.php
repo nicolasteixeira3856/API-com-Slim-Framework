@@ -1,6 +1,7 @@
 <?php 
     use Psr\Http\Message\ServerRequestInterface as Request;
     use Psr\Http\Message\ResponseInterface as Response;
+    use Illuminate\Database\Capsule\Manager as Capsule;
 
     require 'vendor/autoload.php';
 
@@ -10,15 +11,76 @@
         ]
     ]);
 
+    //Banco de Dados
+    $container = $app->getContainer();
+    $container['db'] = function(){
+        $capsule = new Capsule;
+        $capsule->addConnection([
+            'driver'    => 'mysql',
+            'host'      => 'localhost',
+            'database'  => 'slim',
+            'username'  => 'root',
+            'password'  => '',
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'    => '',
+        ]); 
+
+        $capsule->setAsGlobal();
+        //Setup the Eloquent ORM...
+        $capsule->bootEloquent();
+
+        return $capsule;
+    };
+
+    $app->get('/criartabela', function(Request $request, Response $response){
+        /* Criar DB */
+        $db = $this->get('db');
+        $db->schema()->dropIfExists('usuarios');
+        $db->schema()->create('usuarios', function($table){
+            $table->increments('id');
+            $table->string('nome');
+            $table->string('email');
+            $table->timestamps();
+        });
+        /* Inserir */
+        $db->table('usuarios')->insert([
+            'nome'  => 'Nicolas Teixeira',
+            'email' => 'nicolasteixeira3856@outlook.com'
+        ]);
+        $db->table('usuarios')->insert([
+            'nome'  => 'Maria Teixeira',
+            'email' => 'Maria@outlook.com'
+        ]);
+        /* Atualizar */
+        $db->table('usuarios')
+        ->where('id', 1)
+        ->update([
+            'nome' => "Nícolas"
+        ]);
+        /* Deletar */
+        $db->table('usuarios')
+        ->where('id', 2)
+        ->delete();
+        /* Listar */
+        //$tabela_usuarios = $db->table('usuarios');
+        $usuarios = $db->table('usuarios')->get();
+        foreach ($usuarios as $usuario) {
+            echo $usuario->nome.'<br>';
+        }
+    });
+
+    $app->run();
+
 
     /* Tipos de respostas 
         Cabeçalho, texto, JSON, XML 
-    */
+    
 
     $app->get('/header', function(Request $request, Response $response){
         $response->write('Esse é um retorno header');
         return $response   ->withHeader('allow', 'PUT')
-                    ->withAddedHeader('Content-Length', 10);
+                           ->withAddedHeader('Content-Length', 10);
     });
 
     $app->get('/json', function(Request $request, Response $response){
@@ -28,8 +90,40 @@
 
     });
 
+    $app->get('/xml', function(Request $request, Response $response){
+        $xml= file_get_contents('arquivo.xml');
+        $response->write($xml);
+        //->withHeader('Content-Type', 'application/xml');
+        return $response;
+    });
+    */
+
     
-    $app->run();
+
+    /* Middleware */
+
+    /*$app->add(function($request, $response, $next){
+        $response->write('Inicio camada 1 + ');
+        //return $next($request, $response);
+        $response = $next($request, $response);
+        $response->write('+  Fim camada 1 ');
+        return $response;
+    });
+
+    $app->add(function($request, $response, $next){
+        $response->write('Inicio camada 2 + ');
+        return $next($request, $response);
+    });
+
+    $app->get('/usuarios', function(Request $request, Response $response){
+        $response->write('Ação Principal usuarios');
+    });
+
+    $app->get('/postagens', function(Request $request, Response $response){
+        $response->write('Ação Principal postagens');
+    });*/
+    
+    
 
     //Container Dependecy Injection
     /*
